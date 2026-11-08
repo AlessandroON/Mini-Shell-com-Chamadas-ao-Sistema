@@ -7,7 +7,7 @@ from shell_builtins import executar_builtin
 
 
 def executar_comando(comando, argumentos):
-    """Executa programa externo com fork/execvp e espera seu tÃ©rmino."""
+    """Executa programa externo com fork/execvp e espera seu terrmino."""
     try:
         pid_filho = os.fork()
     except OSError as erro:
@@ -18,9 +18,9 @@ def executar_comando(comando, argumentos):
         try:
             os.execvp(comando, [comando, *argumentos])
         except FileNotFoundError:
-            print(f"Comando nÃ£o encontrado: {comando}", flush=True)
+            print(f"Comando não encontrado: {comando}", flush=True)
         except PermissionError:
-            print(f"PermissÃ£o negada ao executar: {comando}", flush=True)
+            print(f"Permissão negada ao executar: {comando}", flush=True)
         except OSError as erro:
             print(f"Erro ao executar {comando}: {erro}", flush=True)
         os._exit(127)
@@ -65,7 +65,7 @@ def mini_shell():
         comando, *argumentos = partes
         resultado = executar_builtin(comando, argumentos)
         if resultado == "exit":
-            print("AtÃ© mais!")
+            print("Até mais!")
             break
         if resultado:
             continue
