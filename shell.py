@@ -1,4 +1,4 @@
-"""Leitura, interpretação e execução dos comandos do mini shell."""
+﻿"""Leitura, interpretação e execução dos comandos do mini shell."""
 
 import os
 import shlex
@@ -96,7 +96,7 @@ def mini_shell():
         comando, *argumentos = partes
         resultado = executar_builtin(comando, argumentos)
         if resultado == "exit":
-            escrever("Até mais!\n")
+            escrever("Isso é tudo pessoal!!\n")
             break
         if resultado:
             continue
