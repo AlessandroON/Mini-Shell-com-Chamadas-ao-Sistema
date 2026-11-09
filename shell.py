@@ -1,4 +1,4 @@
-﻿"""Leitura e execuÃ§Ã£o dos comandos do mini shell."""
+"""Leitura, interpretação e execução dos comandos do mini shell."""
 
 import os
 import shlex
@@ -6,69 +6,98 @@ import shlex
 from shell_builtins import executar_builtin
 
 
+def escrever(texto):
+    """Escreve texto no terminal usando a chamada write()."""
+    dados = texto.encode("utf-8", errors="replace")
+    while dados:
+        escritos = os.write(1, dados)
+        dados = dados[escritos:]
+
+
+def ler_linha(buffer):
+    """Lê a entrada padrão com read() e devolve uma linha ou None no EOF."""
+    while b"\n" not in buffer[0]:
+        trecho = os.read(0, 4096)
+        if not trecho:
+            if not buffer[0]:
+                return None
+            linha = bytes(buffer[0])
+            buffer[0].clear()
+            return linha.decode("utf-8", errors="replace")
+        buffer[0].extend(trecho)
+
+    fim = buffer[0].index(b"\n")
+    linha = bytes(buffer[0][:fim])
+    del buffer[0][:fim + 1]
+    return linha.decode("utf-8", errors="replace")
+
+
+def interpretar_linha(linha):
+    """Converte uma linha em comando e argumentos; retorna lista vazia se inválida/vazia."""
+    try:
+        return shlex.split(linha)
+    except ValueError as erro:
+        escrever(f"Erro ao interpretar comando: {erro}\n")
+        return []
+
+
 def executar_comando(comando, argumentos):
-    """Executa programa externo com fork/execvp e espera seu terrmino."""
+    """Executa programa externo com fork/execvp e aguarda o processo filho."""
     try:
         pid_filho = os.fork()
     except OSError as erro:
-        print(f"Erro ao criar processo filho: {erro}")
+        escrever(f"Erro ao criar processo filho: {erro}\n")
         return
 
     if pid_filho == 0:
         try:
             os.execvp(comando, [comando, *argumentos])
         except FileNotFoundError:
-            print(f"Comando não encontrado: {comando}", flush=True)
+            mensagem = f"Comando não encontrado: {comando}\n"
         except PermissionError:
-            print(f"Permissão negada ao executar: {comando}", flush=True)
+            mensagem = f"Permissão negada ao executar: {comando}\n"
         except OSError as erro:
-            print(f"Erro ao executar {comando}: {erro}", flush=True)
+            mensagem = f"Erro ao executar {comando}: {erro}\n"
+        os.write(2, mensagem.encode("utf-8", errors="replace"))
         os._exit(127)
 
-    try:
-        os.wait()
-    except InterruptedError:
-        # Se a espera for interrompida, continua aguardando o filho.
-        while True:
-            try:
-                os.waitpid(pid_filho, 0)
-                break
-            except InterruptedError:
-                continue
-    except ChildProcessError as erro:
-        print(f"Erro ao aguardar processo filho: {erro}")
+    while True:
+        try:
+            os.wait()
+            break
+        except InterruptedError:
+            continue
+        except ChildProcessError as erro:
+            escrever(f"Erro ao aguardar processo filho: {erro}\n")
+            break
 
 
 def mini_shell():
+    """Controla o prompt e o ciclo principal do mini shell."""
+    buffer = bytearray()
     while True:
+        escrever("> ")
         try:
-            linha = input("> ").strip()
+            linha = ler_linha([buffer])
         except KeyboardInterrupt:
-            print("\nUse 'exit' para sair.")
+            escrever("\nUse 'exit' para sair.\n")
             continue
-        except EOFError:
-            print()
+        if linha is None:
+            escrever("\n")
             break
-
+        linha = linha.strip()
         if not linha:
             continue
 
-        try:
-            partes = shlex.split(linha)
-        except ValueError as erro:
-            print(f"Erro ao interpretar comando: {erro}")
-            continue
-
+        partes = interpretar_linha(linha)
         if not partes:
             continue
 
         comando, *argumentos = partes
         resultado = executar_builtin(comando, argumentos)
         if resultado == "exit":
-            print("Até mais!")
+            escrever("Até mais!\n")
             break
         if resultado:
             continue
-
         executar_comando(comando, argumentos)
-
