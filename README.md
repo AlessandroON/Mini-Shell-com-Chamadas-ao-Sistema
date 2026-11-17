@@ -28,20 +28,31 @@ Quando aparecer `>`, digite um comando. Para encerrar o mini shell, use `exit`.
 
 ## Exemplos de uso
 
+As saídas de `pwd` e `ls` dependem do diretório em que o mini shell foi iniciado. Abaixo, `/mnt/c/Sites/Mini-Shell-com-Chamadas-ao-Sistema` é usado como exemplo; a saída de `ls -l` varia conforme os arquivos e permissões do ambiente.
+
 ```text
 > pwd
 /mnt/c/Sites/Mini-Shell-com-Chamadas-ao-Sistema
 > ls
 README.md  main.py  shell.py  shell_builtins.py
 > ls -l
+-rw-r--r-- ... README.md
+-rw-r--r-- ... main.py
+-rw-r--r-- ... shell.py
+-rw-r--r-- ... shell_builtins.py
 > echo "Olá, mundo!"
 Olá, mundo!
 > cd /tmp
 > pwd
 /tmp
 > cd
+> pwd
+/home/usuario
 > help
+Comandos internos: cd [diretório], pwd, help, exit
+Outros comandos são executados como programas do sistema.
 > exit
+Isso é tudo pessoal!!
 ```
 
 `pwd` mostra a pasta atual; `ls` lista seus arquivos; `ls -l` mostra detalhes. O mini shell passa comandos externos e seus argumentos ao sistema. Aspas agrupam palavras com espaços, como em `echo "Olá, mundo!"`.
